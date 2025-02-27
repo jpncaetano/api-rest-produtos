@@ -3,20 +3,22 @@ package com.jpncaetano.api.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.stereotype.Component;
+import io.jsonwebtoken.security.Keys;
+import java.security.Key;
 import java.util.Date;
+import org.springframework.stereotype.Component;
 
 @Component
 public class JwtUtil {
 
-    private static final String SECRET_KEY = "secreta123"; // 🔥 Troque por uma chave segura
+    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256); // 🔥 Chave Segura
 
     public String generateToken(String username) {
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1h
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .signWith(SECRET_KEY)
                 .compact();
     }
 
@@ -29,8 +31,9 @@ public class JwtUtil {
     }
 
     private Claims getClaims(String token) {
-        return Jwts.parser()
+        return Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
     }

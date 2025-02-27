@@ -4,7 +4,6 @@ import com.jpncaetano.api.dto.AuthRequest;
 import com.jpncaetano.api.dto.AuthResponse;
 import com.jpncaetano.api.enums.Role;
 import com.jpncaetano.api.model.User;
-import com.jpncaetano.api.enums.Role;
 import com.jpncaetano.api.security.JwtUtil;
 import com.jpncaetano.api.service.UserService;
 import org.springframework.http.ResponseEntity;
