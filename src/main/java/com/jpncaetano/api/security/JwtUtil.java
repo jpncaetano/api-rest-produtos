@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtUtil {
 
-    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256); // 🔥 Chave Segura
+    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256); // Chave Segura
 
     public String generateToken(String username) {
         return Jwts.builder()

@@ -4,11 +4,11 @@ import com.jpncaetano.api.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Entity
 @Table(name = "users")
 public class User {
     @Id

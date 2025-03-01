@@ -43,6 +43,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+                        .requestMatchers("/products", "/products/{id}").permitAll() // Permite GET para todos
+                        .requestMatchers("/products/**").hasRole("ADMIN") // Restringe POST, PUT e DELETE para ADMIN
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
