@@ -4,11 +4,13 @@ import com.jpncaetano.api.security.JwtAuthenticationFilter;
 import com.jpncaetano.api.security.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,6 +23,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
@@ -45,14 +48,30 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler())
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // Permitir o registro de usuários sem autenticação
+                        .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+
+                        // Apenas ADMIN pode criar novos ADMINs
+                        .requestMatchers(HttpMethod.POST, "/auth/register/admin").hasRole("ADMIN")
+
+                        // Permitir login e Swagger sem autenticação
                         .requestMatchers(
-                                "/auth/**",
+                                "/auth/login",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html"
                         ).permitAll()
-                        .requestMatchers("/products", "/products/{id}").permitAll() // Permite GET para todos
-                        .requestMatchers("/products/**").hasRole("ADMIN") // Restringe POST, PUT e DELETE para ADMIN
+
+                        // Permitir GET em /products e /products/{id} para todos
+                        .requestMatchers(HttpMethod.GET, "/products", "/products/{id}").permitAll()
+
+                        // Restringir operações em produtos apenas para SELLERS e ADMINS
+                        .requestMatchers(HttpMethod.POST, "/products").hasAnyRole("SELLER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/products/{id}").hasAnyRole("SELLER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/products/{id}").hasAnyRole("SELLER", "ADMIN")
+
+
+                        // Qualquer outra requisição precisa estar autenticada
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -71,7 +90,6 @@ public class SecurityConfig {
             response.getWriter().write("{\"error\": \"Acesso negado: Você não tem permissão para realizar esta ação.\"}");
         };
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {

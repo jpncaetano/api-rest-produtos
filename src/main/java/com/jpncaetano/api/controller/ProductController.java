@@ -1,10 +1,13 @@
 package com.jpncaetano.api.controller;
 
+import com.jpncaetano.api.dto.ProductDTO;
 import com.jpncaetano.api.model.Product;
 import com.jpncaetano.api.service.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,7 +21,7 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
+    public ResponseEntity<List<ProductDTO>> getAllProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
@@ -28,19 +31,22 @@ public class ProductController {
         return product.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // Permite tanto ADMIN quanto SELLER cadastrar produtos
     @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        return ResponseEntity.ok(productService.createProduct(product));
+    @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
+    public ResponseEntity<ProductDTO> createProduct(@RequestBody Product product, Principal principal) {
+        return ResponseEntity.ok(productService.createProduct(product, principal.getName()));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // Permite tanto ADMIN quanto SELLER atualizar produtos
+    @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product productDetails) {
         return ResponseEntity.ok(productService.updateProduct(id, productDetails));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // Permite tanto ADMIN quanto SELLER excluir produtos
+    @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);

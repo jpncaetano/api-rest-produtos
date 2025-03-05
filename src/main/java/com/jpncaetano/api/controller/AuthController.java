@@ -7,8 +7,10 @@ import com.jpncaetano.api.model.User;
 import com.jpncaetano.api.repository.UserRepository;
 import com.jpncaetano.api.security.JwtUtil;
 import com.jpncaetano.api.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,7 +26,6 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
 
-    @Autowired
     public AuthController(UserService userService, JwtUtil jwtUtil,
                           AuthenticationManager authenticationManager, UserRepository userRepository) {
         this.userService = userService;
@@ -34,10 +35,25 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody AuthRequest request) {
-        User user = new User(null, request.getUsername(), request.getPassword(), Role.USER);
+    public ResponseEntity<String> register(@Valid @RequestBody AuthRequest request) {
+        Role role = request.getRole();
+
+        if (role == null || (role != Role.CUSTOMER && role != Role.SELLER)) {
+            return ResponseEntity.badRequest().body("Tipo de usuário inválido. Escolha CUSTOMER ou SELLER.");
+        }
+
+        User user = new User(null, request.getUsername(), request.getPassword(), role);
         userService.save(user);
-        return ResponseEntity.ok("Usuário registrado com sucesso!");
+        return ResponseEntity.status(HttpStatus.CREATED).body("Usuário registrado com sucesso!");
+    }
+
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/register/admin")
+    public ResponseEntity<String> registerAdmin(@Valid @RequestBody AuthRequest request) {
+        User user = new User(null, request.getUsername(), request.getPassword(), Role.ADMIN);
+        userService.save(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Usuário ADMIN registrado com sucesso!");
     }
 
     @PostMapping("/login")
@@ -47,11 +63,15 @@ public class AuthController {
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = jwtUtil.generateToken(request.getUsername());
 
+        // Buscar usuário no banco
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        // Gerar token incluindo a role
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
 
         return ResponseEntity.ok(new AuthResponse(token, user.getRole().name()));
     }
 }
+

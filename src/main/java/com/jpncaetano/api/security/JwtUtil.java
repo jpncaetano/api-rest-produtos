@@ -13,14 +13,16 @@ public class JwtUtil {
 
     private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256); // Chave Segura
 
-    public String generateToken(String username) {
+    public String generateToken(String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
+                .claim("role", role) // Adicionando a role dentro do token
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1h
                 .signWith(SECRET_KEY)
                 .compact();
     }
+
 
     public String extractUsername(String token) {
         return getClaims(token).getSubject();

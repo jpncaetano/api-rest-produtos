@@ -30,7 +30,7 @@ public class Product {
 
     @ManyToOne
     @JoinColumn(name = "created_by")
-    private User createdBy; // Admin que cadastrou o produto
+    private User createdBy; // Seller que cadastrou o produto
 }
 
 

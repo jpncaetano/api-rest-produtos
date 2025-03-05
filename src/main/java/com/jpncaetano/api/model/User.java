@@ -1,5 +1,6 @@
 package com.jpncaetano.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jpncaetano.api.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,6 +19,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String username;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 
