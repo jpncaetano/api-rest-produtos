@@ -1,15 +1,16 @@
 package com.jpncaetano.api.controller;
 
 import com.jpncaetano.api.dto.AuthRequest;
+import com.jpncaetano.api.dto.UserDTO;
 import com.jpncaetano.api.model.User;
 import com.jpncaetano.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.security.Principal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -35,8 +36,14 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<User>> listAllUsers() {
-        return ResponseEntity.ok(userService.findAll());
+    public ResponseEntity<List<UserDTO>> listAllUsers() {
+        List<UserDTO> users = userService.findAll()
+                .stream()
+                .map(UserDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(users);
     }
+
+
 }
 

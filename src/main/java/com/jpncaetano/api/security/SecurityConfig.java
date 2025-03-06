@@ -1,7 +1,5 @@
-package com.jpncaetano.api.config;
+package com.jpncaetano.api.security;
 
-import com.jpncaetano.api.security.JwtAuthenticationFilter;
-import com.jpncaetano.api.security.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,9 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 
 @Configuration
 @EnableMethodSecurity
@@ -44,9 +40,10 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
+                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
                         .accessDeniedHandler(accessDeniedHandler())
                 )
+
                 .authorizeHttpRequests(auth -> auth
                         // Permitir o registro de usuários sem autenticação
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()

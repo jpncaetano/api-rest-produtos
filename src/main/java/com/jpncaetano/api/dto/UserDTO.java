@@ -14,11 +14,15 @@ public class UserDTO {
     private String username;
     private Role role;
 
+    // Construtor para converter User em UserDTO
     public UserDTO(User user) {
         if (user != null) {
             this.id = user.getId();
             this.username = user.getUsername();
             this.role = user.getRole();
         }
+    }
+
+    public UserDTO(UserDTO userDTO) {
     }
 }

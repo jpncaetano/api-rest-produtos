@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/products")
@@ -20,34 +19,51 @@ public class ProductController {
         this.productService = productService;
     }
 
+    /**
+     * Retorna a lista de todos os produtos cadastrados.
+     * A resposta já está formatada como uma lista de `ProductDTO`.
+     */
     @GetMapping
     public ResponseEntity<List<ProductDTO>> getAllProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
+    /**
+     * Retorna um produto pelo ID, se encontrado.
+     * Caso contrário, retorna um erro tratado.
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        Optional<Product> product = productService.getProductById(id);
-        return product.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ProductDTO> getProductById(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.getProductById(id));
     }
 
-    // Permite tanto ADMIN quanto SELLER cadastrar produtos
+    /**
+     * Permite a criação de um novo produto, apenas por SELLERs e ADMINs.
+     */
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
     public ResponseEntity<ProductDTO> createProduct(@RequestBody Product product, Principal principal) {
-        return ResponseEntity.ok(productService.createProduct(product, principal.getName()));
+        ProductDTO createdProduct = productService.createProduct(product, principal.getName());
+        return ResponseEntity.ok(createdProduct);
     }
 
-    // Permite tanto ADMIN quanto SELLER atualizar produtos
-    @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
+    /**
+     * Permite a atualização de um produto pelo ID.
+     * Apenas SELLERs e ADMINs podem modificar produtos.
+     */
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product productDetails) {
-        return ResponseEntity.ok(productService.updateProduct(id, productDetails));
+    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
+    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @RequestBody Product productDetails) {
+        ProductDTO updatedProduct = productService.updateProduct(id, productDetails);
+        return ResponseEntity.ok(updatedProduct);
     }
 
-    // Permite tanto ADMIN quanto SELLER excluir produtos
-    @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
+    /**
+     * Permite deletar um produto pelo ID.
+     * Apenas SELLERs e ADMINs podem excluir produtos.
+     */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
