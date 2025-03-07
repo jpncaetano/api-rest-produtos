@@ -81,7 +81,6 @@ public class SecurityConfig {
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
         return (request, response, accessDeniedException) -> {
-            System.out.println("🔴 Acesso negado! O AccessDeniedHandler foi acionado.");
             response.setStatus(HttpStatus.FORBIDDEN.value());
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Acesso negado: Você não tem permissão para realizar esta ação.\"}");

@@ -14,7 +14,7 @@ public class UserDTO {
     private String username;
     private Role role;
 
-    // Construtor para converter User em UserDTO
+    // Construtor que converte um objeto User em um UserDTO
     public UserDTO(User user) {
         if (user != null) {
             this.id = user.getId();
@@ -23,6 +23,10 @@ public class UserDTO {
         }
     }
 
-    public UserDTO(UserDTO userDTO) {
+    // Adicionando um construtor que aceita os atributos diretamente
+    public UserDTO(Long id, String username, Role role) {
+        this.id = id;
+        this.username = username;
+        this.role = role;
     }
 }

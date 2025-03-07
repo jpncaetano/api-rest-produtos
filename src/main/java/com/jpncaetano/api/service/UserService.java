@@ -25,6 +25,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // Salva um novo usuário no banco de dados
     public User save(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new UserAlreadyExistsException("Usuário já existe: " + user.getUsername());
@@ -34,11 +35,13 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    // Retorna um usuário pelo username
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado: " + username));
     }
 
+    // Atualiza os dados do usuário autenticado
     public void updateUser(String username, AuthRequest request) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado: " + username));
@@ -60,9 +63,31 @@ public class UserService {
         userRepository.save(user);
     }
 
+    // Retorna a lista de todos os usuários cadastrados
     public List<UserDTO> findAll() {
         return userRepository.findAll().stream()
                 .map(UserDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    // Retorna um usuário pelo ID
+    public User findById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com ID: " + id));
+    }
+
+    // Exclui um usuário pelo ID
+    public void deleteUserById(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new UserNotFoundException("Usuário não encontrado com ID: " + id);
+        }
+        userRepository.deleteById(id);
+    }
+
+    // Exclui o próprio usuário autenticado
+    public void deleteUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado: " + username));
+        userRepository.delete(user);
     }
 }

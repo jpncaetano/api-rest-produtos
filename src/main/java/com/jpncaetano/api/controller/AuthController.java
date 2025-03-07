@@ -34,11 +34,12 @@ public class AuthController {
         this.userRepository = userRepository;
     }
 
+    // Registra um novo usuário do tipo CUSTOMER ou SELLER
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody AuthRequest request) {
         Role role = request.getRole();
 
-        if (role == null || (role != Role.CUSTOMER && role != Role.SELLER)) {
+        if ((role != Role.CUSTOMER && role != Role.SELLER)) {
             return ResponseEntity.badRequest().body("Tipo de usuário inválido. Escolha CUSTOMER ou SELLER.");
         }
 
@@ -47,7 +48,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body("Usuário registrado com sucesso!");
     }
 
-
+    // Registra um novo ADMIN (apenas ADMINs podem acessar)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/register/admin")
     public ResponseEntity<String> registerAdmin(@Valid @RequestBody AuthRequest request) {
@@ -56,6 +57,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body("Usuário ADMIN registrado com sucesso!");
     }
 
+    // Autentica um usuário e gera um token JWT
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
         Authentication authentication = authenticationManager.authenticate(
@@ -73,5 +75,11 @@ public class AuthController {
 
         return ResponseEntity.ok(new AuthResponse(token, user.getRole().name()));
     }
-}
 
+    // Realiza logout limpando o contexto de autenticação
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout() {
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok("Logout realizado com sucesso.");
+    }
+}
