@@ -2,14 +2,14 @@ package com.jpncaetano.api.service;
 
 import com.jpncaetano.api.dto.AuthRequest;
 import com.jpncaetano.api.dto.UserDTO;
+import com.jpncaetano.api.enums.Role;
 import com.jpncaetano.api.exception.UserAlreadyExistsException;
 import com.jpncaetano.api.exception.UserNotFoundException;
 import com.jpncaetano.api.model.User;
 import com.jpncaetano.api.repository.UserRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,6 +25,10 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // ==============================
+    // 🔹 Métodos de VISITANTE (Sem autenticação)
+    // ==============================
+
     // Salva um novo usuário no banco de dados
     public User save(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
@@ -35,13 +39,17 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    // ==============================
+    // 🔹 Métodos de CUSTOMER, SELLER e ADMIN
+    // ==============================
+
     // Retorna um usuário pelo username
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado: " + username));
     }
 
-    // Atualiza os dados do usuário autenticado
+    // Atualiza os dados do próprio usuário autenticado
     public void updateUser(String username, AuthRequest request) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado: " + username));
@@ -63,31 +71,51 @@ public class UserService {
         userRepository.save(user);
     }
 
-    // Retorna a lista de todos os usuários cadastrados
-    public List<UserDTO> findAll() {
+    // Exclui a própria conta do usuário autenticado
+    public void deleteUserByUsername(String username, User authenticatedUser) {
+        if (!authenticatedUser.getUsername().equals(username)) {
+            throw new AccessDeniedException("Usuário só pode excluir a própria conta.");
+        }
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado: " + username));
+
+        userRepository.delete(user);
+    }
+
+    // ==============================
+    // 🔹 Métodos restritos ao ADMIN
+    // ==============================
+
+    // Retorna a lista de todos os usuários cadastrados (Apenas ADMIN)
+    public List<UserDTO> findAll(User authenticatedUser) {
+        if (authenticatedUser.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("Apenas administradores podem listar todos os usuários.");
+        }
+
         return userRepository.findAll().stream()
                 .map(UserDTO::new)
                 .collect(Collectors.toList());
     }
 
-    // Retorna um usuário pelo ID
-    public User findById(Long id) {
+    // Retorna usuário por ID (Apenas ADMIN)
+    public User findById(Long id, User authenticatedUser) {
+        if (authenticatedUser.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("Apenas administradores podem buscar usuários pelo ID.");
+        }
+
         return userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com ID: " + id));
     }
 
-    // Exclui um usuário pelo ID
-    public void deleteUserById(Long id) {
+    // Deleta qualquer usuário por ID (Apenas ADMIN)
+    public void deleteUserById(Long id, User authenticatedUser) {
+        if (authenticatedUser.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("Apenas administradores podem excluir usuários.");
+        }
         if (!userRepository.existsById(id)) {
             throw new UserNotFoundException("Usuário não encontrado com ID: " + id);
         }
         userRepository.deleteById(id);
-    }
-
-    // Exclui o próprio usuário autenticado
-    public void deleteUserByUsername(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado: " + username));
-        userRepository.delete(user);
     }
 }

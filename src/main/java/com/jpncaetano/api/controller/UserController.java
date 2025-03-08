@@ -24,51 +24,71 @@ public class UserController {
         this.userService = userService;
     }
 
-    // Retorna os dados do usuário autenticado
+    // ==============================
+    // 🔹 Métodos para Usuário Autenticado (CUSTOMER, SELLER, ADMIN)
+    // ==============================
+
+    /**
+     * Retorna os dados do usuário autenticado.
+     */
     @GetMapping("/me")
     public ResponseEntity<User> getMyProfile(Principal principal) {
         return ResponseEntity.ok(userService.findByUsername(principal.getName()));
     }
 
-    // Permite atualizar o perfil do usuário autenticado
+    /**
+     * Permite que um usuário autenticado atualize seu próprio perfil.
+     */
     @PutMapping("/me")
     public ResponseEntity<String> updateMyProfile(@RequestBody AuthRequest request, Principal principal) {
         userService.updateUser(principal.getName(), request);
         return ResponseEntity.ok("Perfil atualizado com sucesso!");
     }
 
-    // Permite excluir a própria conta
+    /**
+     * Permite que um usuário autenticado exclua sua própria conta.
+     */
     @DeleteMapping("/me")
     public ResponseEntity<String> deleteMyAccount(Principal principal) {
-        userService.deleteUserByUsername(principal.getName());
+        User authenticatedUser = userService.findByUsername(principal.getName());
+        userService.deleteUserByUsername(principal.getName(), authenticatedUser);
         return ResponseEntity.ok("Conta excluída com sucesso!");
     }
 
-    // Permite que ADMIN liste todos os usuários cadastrados
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
-    public ResponseEntity<List<UserDTO>> listAllUsers() {
-        List<UserDTO> users = userService.findAll()
-                .stream()
-                .map(user -> new UserDTO(user.getId(), user.getUsername(), user.getRole()))
-                .collect(Collectors.toList());
+    // ==============================
+    // 🔹 Métodos Exclusivos para ADMIN
+    // ==============================
 
+    /**
+     * Permite que um ADMIN liste todos os usuários cadastrados.
+     */
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserDTO>> listAllUsers(Principal principal) {
+        User authenticatedUser = userService.findByUsername(principal.getName());
+        List<UserDTO> users = userService.findAll(authenticatedUser);
         return ResponseEntity.ok(users);
     }
 
-    // Permite que ADMIN busque um usuário pelo ID
-    @PreAuthorize("hasRole('ADMIN')")
+    /**
+     * Permite que um ADMIN busque um usuário específico pelo ID.
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        User user = userService.findById(id);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id, Principal principal) {
+        User authenticatedUser = userService.findByUsername(principal.getName());
+        User user = userService.findById(id, authenticatedUser);
         return ResponseEntity.ok(new UserDTO(user.getId(), user.getUsername(), user.getRole()));
     }
 
-    // Permite que ADMIN exclua um usuário pelo ID
-    @PreAuthorize("hasRole('ADMIN')")
+    /**
+     * Permite que um ADMIN exclua um usuário específico pelo ID.
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUserById(@PathVariable Long id) {
-        userService.deleteUserById(id);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> deleteUserById(@PathVariable Long id, Principal principal) {
+        User authenticatedUser = userService.findByUsername(principal.getName());
+        userService.deleteUserById(id, authenticatedUser);
         return ResponseEntity.ok("Usuário excluído com sucesso!");
     }
 }

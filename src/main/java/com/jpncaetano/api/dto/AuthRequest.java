@@ -2,11 +2,13 @@ package com.jpncaetano.api.dto;
 
 import com.jpncaetano.api.enums.Role;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class AuthRequest {
     @NotBlank(message = "O nome de usuário é obrigatório.")
     private String username;
