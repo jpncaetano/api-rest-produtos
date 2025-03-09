@@ -25,10 +25,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // ==============================
-    // 🔹 Métodos de VISITANTE (Sem autenticação)
-    // ==============================
-
+    // Métodos de VISITANTE (Sem autenticação)
     // Salva um novo usuário no banco de dados
     public User save(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
@@ -39,10 +36,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // ==============================
-    // 🔹 Métodos de CUSTOMER, SELLER e ADMIN
-    // ==============================
-
+    // Métodos de CUSTOMER, SELLER e ADMIN
     // Retorna um usuário pelo username
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
@@ -83,10 +77,7 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    // ==============================
-    // 🔹 Métodos restritos ao ADMIN
-    // ==============================
-
+    // Métodos restritos ao ADMIN
     // Retorna a lista de todos os usuários cadastrados (Apenas ADMIN)
     public List<UserDTO> findAll(User authenticatedUser) {
         if (authenticatedUser.getRole() != Role.ADMIN) {

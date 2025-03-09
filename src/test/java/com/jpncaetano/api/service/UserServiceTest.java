@@ -37,10 +37,7 @@ class UserServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    // ==============================
-    // 🔹 Testes para VISITANTE (Sem autenticação)
-    // ==============================
-
+    // Testes para VISITANTE (Sem autenticação)
     @Test
     void deveSalvarUsuarioComSenhaCriptografada() {
         User user = new User(null, "testuser", "password", Role.CUSTOMER);
@@ -63,10 +60,7 @@ class UserServiceTest {
         assertThrows(UserAlreadyExistsException.class, () -> userService.save(user));
     }
 
-    // ==============================
-    // 🔹 Testes para CUSTOMER, SELLER e ADMIN
-    // ==============================
-
+    // Testes para CUSTOMER, SELLER e ADMIN
     @ParameterizedTest
     @EnumSource(Role.class)
     void deveBuscarUsuarioPorUsernameComTodosOsRoles(Role role) {
@@ -129,10 +123,7 @@ class UserServiceTest {
         assertThrows(AccessDeniedException.class, () -> userService.deleteUserByUsername("otheruser", authenticatedUser));
     }
 
-    // ==============================
-    // 🔹 Testes para ADMIN (Apenas ADMIN pode listar/deletar usuários por ID)
-    // ==============================
-
+    // Testes para ADMIN (Apenas ADMIN pode listar/deletar usuários por ID)
     @Test
     void deveLancarExcecaoAoBuscarUsuarioInexistente() {
         User adminUser = new User(99L, "admin", "password", Role.ADMIN);

@@ -24,10 +24,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    // ==============================
-    // 🔹 Métodos para Usuário Autenticado (CUSTOMER, SELLER, ADMIN)
-    // ==============================
-
+    // Métodos para Usuário Autenticado (CUSTOMER, SELLER, ADMIN)
     /**
      * Retorna os dados do usuário autenticado.
      */
@@ -55,10 +52,7 @@ public class UserController {
         return ResponseEntity.ok("Conta excluída com sucesso!");
     }
 
-    // ==============================
-    // 🔹 Métodos Exclusivos para ADMIN
-    // ==============================
-
+    // Métodos Exclusivos para ADMIN
     /**
      * Permite que um ADMIN liste todos os usuários cadastrados.
      */
