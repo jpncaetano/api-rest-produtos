@@ -3,6 +3,8 @@ package com.api.controller;
 import com.api.dto.AuthRequest;
 import com.api.dto.AuthResponse;
 import com.api.enums.Role;
+import com.api.exception.UserAlreadyExistsException;
+import com.api.exception.UserNotFoundException;
 import com.api.model.User;
 import com.api.repository.UserRepository;
 import com.api.security.JwtUtil;
@@ -43,10 +45,16 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Tipo de usuário inválido. Escolha CUSTOMER ou SELLER.");
         }
 
+        // Verifica se o usuário já existe antes de criar
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new UserAlreadyExistsException("Usuário já existe");
+        }
+
         User user = new User(null, request.getUsername(), request.getPassword(), role);
         userService.save(user);
         return ResponseEntity.status(HttpStatus.CREATED).body("Usuário registrado com sucesso!");
     }
+
 
     // Registra um novo ADMIN (apenas ADMINs podem acessar)
     @PreAuthorize("hasRole('ADMIN')")
@@ -68,13 +76,14 @@ public class AuthController {
 
         // Buscar usuário no banco
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
 
         // Gerar token incluindo a role
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
 
         return ResponseEntity.ok(new AuthResponse(token, user.getRole().name()));
     }
+
 
     // Realiza logout limpando o contexto de autenticação
     @PostMapping("/logout")
