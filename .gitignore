@@ -1,4 +1,4 @@
-### 🔥 Ignore diretórios de build e binários ###
+# Diretórios de build e binários
 target/
 build/
 out/
@@ -8,7 +8,7 @@ bin/
 *.war
 *.ear
 
-### 🔥 Ignore arquivos do Maven ###
+# Arquivos do Maven
 !.mvn/wrapper/maven-wrapper.jar
 **/mvnw
 **/mvnw.cmd
@@ -22,7 +22,7 @@ bin/
 **/.mvn/timing.properties
 **/.mvn/wrapper/maven-wrapper.jar
 
-### 🔥 Ignore arquivos do Gradle ###
+# Arquivos do Gradle
 .gradle/
 **/build/
 !**/src/main/**/build/
@@ -35,7 +35,7 @@ bin/
 **/settings.gradle.kts
 **/gradle.properties
 
-### 🔥 Ignore arquivos do IntelliJ IDEA ###
+# Arquivos do IntelliJ IDEA
 .idea/
 .idea/modules.xml
 .idea/workspace.xml
@@ -48,7 +48,7 @@ bin/
 *.iml
 *.ipr
 
-### 🔥 Ignore arquivos do Eclipse ###
+# Arquivos do Eclipse
 .apt_generated
 .classpath
 .factorypath
@@ -57,17 +57,17 @@ bin/
 .springBeans/
 .sts4-cache/
 
-### 🔥 Ignore arquivos do NetBeans ###
+# Arquivos do NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
 
-### 🔥 Ignore arquivos do VS Code ###
+# Arquivos do VS Code
 .vscode/
 
-### 🔥 Ignore arquivos de sistema (Mac, Windows, Linux) ###
+# Arquivos de sistema (Mac, Windows, Linux)
 .DS_Store
 Thumbs.db
 ehthumbs.db
@@ -75,7 +75,7 @@ Icon?
 /*.swp
 /*.swo
 
-### 🔥 Ignore logs e arquivos temporários ###
+# Logs e arquivos temporários
 *.log
 *.tmp
 *.bak
@@ -85,20 +85,20 @@ Icon?
 hs_err_pid*
 replay_pid*
 
-### 🔥 Ignore dados sensíveis e configurações ###
-/.env
-/.env.local
-/secrets.properties
-/config/application.properties
-/config/application.yml
-/config/application.yaml
+# Dados sensíveis e configurações
+.env
+.env.local
+secrets.properties
+config/application.properties
+config/application.yml
+config/application.yaml
 *.key
 *.pem
 *.crt
 *.p12
 *.jks
 
-### 🔥 Ignore arquivos de banco de dados ###
+# Arquivos de banco de dados
 *.sqlite
 *.db
 *.sql
