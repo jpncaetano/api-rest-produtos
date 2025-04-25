@@ -1,3 +1,4 @@
+
 package com.api.controller;
 
 import com.api.dto.AuthRequest;
@@ -9,6 +10,9 @@ import com.api.model.User;
 import com.api.repository.UserRepository;
 import com.api.security.JwtUtil;
 import com.api.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "Autenticação", description = "Endpoints de login e registro de usuários")
 public class AuthController {
 
     private final UserService userService;
@@ -36,7 +41,8 @@ public class AuthController {
         this.userRepository = userRepository;
     }
 
-    // Registra um novo usuário do tipo CUSTOMER ou SELLER
+    @Operation(summary = "Registro de usuário (CUSTOMER ou SELLER)")
+    @ApiResponse(responseCode = "201", description = "Usuário registrado com sucesso")
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody AuthRequest request) {
         Role role = request.getRole();
@@ -45,7 +51,6 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Tipo de usuário inválido. Escolha CUSTOMER ou SELLER.");
         }
 
-        // Verifica se o usuário já existe antes de criar
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new UserAlreadyExistsException("Usuário já existe");
         }
@@ -55,8 +60,8 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body("Usuário registrado com sucesso!");
     }
 
-
-    // Registra um novo ADMIN (apenas ADMINs podem acessar)
+    @Operation(summary = "Registro de novo administrador (somente ADMINs)")
+    @ApiResponse(responseCode = "201", description = "Usuário ADMIN registrado com sucesso")
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/register/admin")
     public ResponseEntity<String> registerAdmin(@Valid @RequestBody AuthRequest request) {
@@ -65,7 +70,8 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body("Usuário ADMIN registrado com sucesso!");
     }
 
-    // Autentica um usuário e gera um token JWT
+    @Operation(summary = "Autenticação de usuário")
+    @ApiResponse(responseCode = "200", description = "Login realizado com sucesso e token JWT gerado")
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
         Authentication authentication = authenticationManager.authenticate(
@@ -74,18 +80,16 @@ public class AuthController {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Buscar usuário no banco
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
 
-        // Gerar token incluindo a role
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
 
         return ResponseEntity.ok(new AuthResponse(token, user.getRole().name()));
     }
 
-
-    // Realiza logout limpando o contexto de autenticação
+    @Operation(summary = "Logout do usuário autenticado")
+    @ApiResponse(responseCode = "200", description = "Logout realizado com sucesso")
     @PostMapping("/logout")
     public ResponseEntity<String> logout() {
         SecurityContextHolder.clearContext();

@@ -2,6 +2,7 @@ package com.api.dto;
 
 import com.api.enums.Role;
 import com.api.model.User;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,11 +11,16 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class UserDTO {
+
+    @Schema(description = "ID do usuário", example = "42")
     private Long id;
+
+    @Schema(description = "Nome de usuário", example = "joaopedro")
     private String username;
+
+    @Schema(description = "Tipo de papel do usuário no sistema", example = "ADMIN")
     private Role role;
 
-    // Construtor que converte um objeto User em um UserDTO
     public UserDTO(User user) {
         if (user != null) {
             this.id = user.getId();
@@ -23,7 +29,6 @@ public class UserDTO {
         }
     }
 
-    // Adicionando um construtor que aceita os atributos diretamente
     public UserDTO(Long id, String username, Role role) {
         this.id = id;
         this.username = username;
