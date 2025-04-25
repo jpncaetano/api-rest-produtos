@@ -3,6 +3,7 @@ package com.api.controller;
 import com.api.dto.ProductDTO;
 import com.api.model.Product;
 import com.api.service.ProductService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +25,12 @@ public class ProductController {
      * Retorna a lista de todos os produtos cadastrados.
      */
     @GetMapping
-    public ResponseEntity<List<ProductDTO>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<Page<ProductDTO>> getAllProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name,asc") String[] sort
+    ) {
+        return ResponseEntity.ok(productService.getAllProducts(page, size, sort));
     }
 
     /**

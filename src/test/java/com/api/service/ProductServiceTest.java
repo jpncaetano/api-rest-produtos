@@ -12,6 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -58,14 +62,16 @@ class ProductServiceTest {
 
     @Test
     void deveBuscarTodosOsProdutos() {
-        when(productRepository.findAll()).thenReturn(List.of(product));
+        when(productRepository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(product), PageRequest.of(0, 10), 1));
 
-        List<ProductDTO> products = productService.getAllProducts();
+        Page<ProductDTO> products = productService.getAllProducts(0, 10, new String[]{"name", "asc"});
 
         assertFalse(products.isEmpty());
-        assertEquals(1, products.size());
-        assertEquals("Produto Teste", products.get(0).getName());
+        assertEquals(1, products.getContent().size());
+        assertEquals("Produto Teste", products.getContent().get(0).getName());
     }
+
 
     @Test
     void deveBuscarProdutoPorId() {

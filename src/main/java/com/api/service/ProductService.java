@@ -7,6 +7,10 @@ import com.api.model.Product;
 import com.api.model.User;
 import com.api.repository.ProductRepository;
 import com.api.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,10 +30,17 @@ public class ProductService {
     /**
      * Retorna todos os produtos cadastrados no sistema (aberto para qualquer usuário).
      */
-    public List<ProductDTO> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(ProductDTO::new)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> getAllProducts(int page, int size, String[] sort) {
+        // Separar campo e direção
+        String sortBy = sort[0];
+        Sort.Direction direction = Sort.Direction.ASC;
+        if (sort.length > 1 && sort[1].equalsIgnoreCase("desc")) {
+            direction = Sort.Direction.DESC;
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        return productRepository.findAll(pageable).map(ProductDTO::new);
     }
 
     /**
