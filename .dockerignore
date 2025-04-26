@@ -1,0 +1,23 @@
+# Ignorar configurações locais e arquivos sensíveis
+.env
+*.env
+
+# Ignorar pastas de IDE
+.idea/
+.vscode/
+
+# Ignorar a pasta target (build do Maven)
+target/
+
+# Ignorar arquivos de controle do Git
+.git/
+.gitignore
+
+# Ignorar arquivos de configuração desnecessários
+*.iml
+
+# Ignorar logs
+*.log
+
+# Docker Compose também
+docker-compose.yml

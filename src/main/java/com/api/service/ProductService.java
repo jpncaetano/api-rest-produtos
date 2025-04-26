@@ -7,6 +7,10 @@ import com.api.model.Product;
 import com.api.model.User;
 import com.api.repository.ProductRepository;
 import com.api.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,10 +30,17 @@ public class ProductService {
     /**
      * Retorna todos os produtos cadastrados no sistema (aberto para qualquer usuário).
      */
-    public List<ProductDTO> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(ProductDTO::new)
-                .collect(Collectors.toList());
+    public Page<ProductDTO> getAllProducts(int page, int size, String[] sort) {
+        // Separar campo e direção
+        String sortBy = sort[0];
+        Sort.Direction direction = Sort.Direction.ASC;
+        if (sort.length > 1 && sort[1].equalsIgnoreCase("desc")) {
+            direction = Sort.Direction.DESC;
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        return productRepository.findAll(pageable).map(ProductDTO::new);
     }
 
     /**
@@ -75,7 +86,7 @@ public class ProductService {
     /**
      * Cria um novo produto associado ao usuário autenticado (apenas SELLERs e ADMINs podem criar produtos).
      */
-    public ProductDTO createProduct(Product product, String username) {
+    public ProductDTO createProduct(ProductDTO productDTO, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
@@ -83,10 +94,17 @@ public class ProductService {
             throw new RuntimeException("Apenas SELLERS e ADMINS podem cadastrar produtos.");
         }
 
+        Product product = new Product();
+        product.setName(productDTO.getName());
+        product.setDescription(productDTO.getDescription());
+        product.setPrice(productDTO.getPrice());
+        product.setQuantity(productDTO.getQuantity());
         product.setCreatedBy(user);
+
         Product savedProduct = productRepository.save(product);
         return new ProductDTO(savedProduct);
     }
+
 
     /**
      * Retorna todos os produtos cadastrados pelo próprio usuário autenticado (SELLER ou ADMIN).
@@ -102,7 +120,7 @@ public class ProductService {
     /**
      * Atualiza os dados de um produto pelo ID (apenas o criador pode modificar)
      */
-    public ProductDTO updateProduct(Long id, Product productDetails, String username) {
+    public ProductDTO updateProduct(Long id, ProductDTO productDTO, String username) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Produto com ID " + id + " não encontrado."));
 
@@ -111,14 +129,15 @@ public class ProductService {
             throw new RuntimeException("Você não tem permissão para modificar este produto.");
         }
 
-        product.setName(productDetails.getName());
-        product.setDescription(productDetails.getDescription());
-        product.setPrice(productDetails.getPrice());
-        product.setQuantity(productDetails.getQuantity());
+        product.setName(productDTO.getName());
+        product.setDescription(productDTO.getDescription());
+        product.setPrice(productDTO.getPrice());
+        product.setQuantity(productDTO.getQuantity());
 
         Product updatedProduct = productRepository.save(product);
         return new ProductDTO(updatedProduct);
     }
+
 
     /**
      * Atualiza o estoque de um produto pelo ID (apenas o criador pode modificar)

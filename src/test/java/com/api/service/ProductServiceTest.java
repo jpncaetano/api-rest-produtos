@@ -12,6 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,6 +39,9 @@ class ProductServiceTest {
     private User adminUser;
     private User customerUser;
     private Product product;
+    private ProductDTO productDTO;
+    private ProductDTO updatedDetailsDTO;
+
 
     @BeforeEach
     void setUp() {
@@ -48,23 +55,32 @@ class ProductServiceTest {
         // Configuração de um produto vinculado ao sellerUser
         product = new Product(1L, "Produto Teste", "Descrição", new BigDecimal("100.0"), 10, sellerUser);
 
+        productDTO = new ProductDTO(product);
+
+        updatedDetailsDTO = new ProductDTO(product);
+        updatedDetailsDTO.setName("Novo Nome");
+        updatedDetailsDTO.setDescription("Nova Descrição");
+        updatedDetailsDTO.setPrice(new BigDecimal("120.0"));
+        updatedDetailsDTO.setQuantity(15);
+
         // Mocks do repositório de produtos e usuários
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
         when(userRepository.findByUsername(sellerUser.getUsername())).thenReturn(Optional.of(sellerUser));
         when(userRepository.findByUsername(adminUser.getUsername())).thenReturn(Optional.of(adminUser));
         when(userRepository.findByUsername(customerUser.getUsername())).thenReturn(Optional.of(customerUser));
-        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0, Product.class));
     }
 
     @Test
     void deveBuscarTodosOsProdutos() {
-        when(productRepository.findAll()).thenReturn(List.of(product));
+        when(productRepository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(product), PageRequest.of(0, 10), 1));
 
-        List<ProductDTO> products = productService.getAllProducts();
+        Page<ProductDTO> products = productService.getAllProducts(0, 10, new String[]{"name", "asc"});
 
         assertFalse(products.isEmpty());
-        assertEquals(1, products.size());
-        assertEquals("Produto Teste", products.get(0).getName());
+        assertEquals(1, products.getContent().size());
+        assertEquals("Produto Teste", products.getContent().get(0).getName());
     }
 
     @Test
@@ -97,7 +113,6 @@ class ProductServiceTest {
         assertFalse(adminProducts.isEmpty(), "A lista de produtos do adminUser não deveria estar vazia!");
     }
 
-
     @Test
     void deveLancarExcecaoAoBuscarProdutosDeUsuarioInexistente() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
@@ -124,7 +139,7 @@ class ProductServiceTest {
     void deveCriarProdutoComPermissao() {
         when(productRepository.save(any(Product.class))).thenReturn(product);
 
-        ProductDTO createdProduct = productService.createProduct(product, "sellerUser");
+        ProductDTO createdProduct = productService.createProduct(productDTO, "sellerUser");
 
         assertNotNull(createdProduct);
         verify(productRepository, times(1)).save(any(Product.class));
@@ -132,7 +147,7 @@ class ProductServiceTest {
 
     @Test
     void deveLancarExcecaoAoCriarProdutoComoCustomer() {
-        assertThrows(RuntimeException.class, () -> productService.createProduct(product, "customerUser"));
+        assertThrows(RuntimeException.class, () -> productService.createProduct(productDTO, "customerUser"));
     }
 
     @Test
@@ -147,9 +162,7 @@ class ProductServiceTest {
 
     @Test
     void deveAtualizarProdutoApenasPeloCriador() {
-        Product updatedDetails = new Product(1L, "Novo Nome", "Nova Descrição", new BigDecimal("120.0"), 15, sellerUser);
-
-        assertDoesNotThrow(() -> productService.updateProduct(1L, updatedDetails, sellerUser.getUsername()));
+        assertDoesNotThrow(() -> productService.updateProduct(1L, updatedDetailsDTO, sellerUser.getUsername()));
 
         verify(productRepository, times(1)).save(product);
         assertEquals("Novo Nome", product.getName());
@@ -160,10 +173,7 @@ class ProductServiceTest {
 
     @Test
     void deveLancarExcecaoAoAtualizarProdutoDeOutroUsuario() {
-        Product updatedDetails = new Product();
-        updatedDetails.setName("Novo Nome");
-
-        assertThrows(RuntimeException.class, () -> productService.updateProduct(1L, updatedDetails, "outroUsuario"));
+        assertThrows(RuntimeException.class, () -> productService.updateProduct(1L, updatedDetailsDTO, "outroUsuario"));
     }
 
     @Test
