@@ -1,4 +1,3 @@
-
 package com.api.controller;
 
 import com.api.dto.AuthRequest;
@@ -34,9 +33,11 @@ public class UserController {
     @Operation(summary = "Obtém o perfil do usuário autenticado")
     @ApiResponse(responseCode = "200", description = "Perfil retornado com sucesso")
     @GetMapping("/me")
-    public ResponseEntity<User> getMyProfile(Principal principal) {
-        return ResponseEntity.ok(userService.findByUsername(principal.getName()));
+    public ResponseEntity<UserDTO> getMyProfile(Principal principal) {
+        UserDTO userDTO = userService.findUserDTOByUsername(principal.getName());
+        return ResponseEntity.ok(userDTO);
     }
+
 
     @Operation(summary = "Atualiza os dados do usuário autenticado")
     @ApiResponse(responseCode = "200", description = "Perfil atualizado com sucesso")

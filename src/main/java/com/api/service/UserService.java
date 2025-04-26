@@ -43,6 +43,12 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado: " + username));
     }
 
+    public UserDTO findUserDTOByUsername(String username) {
+        User user = findByUsername(username);  // Reutilizando seu método atual!
+        return new UserDTO(user.getId(), user.getUsername(), user.getRole());
+    }
+
+
     // Atualiza os dados do próprio usuário autenticado
     public void updateUser(String username, AuthRequest request) {
         User user = userRepository.findByUsername(username)

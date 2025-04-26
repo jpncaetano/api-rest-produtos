@@ -75,16 +75,16 @@ public class ProductController {
     @ApiResponse(responseCode = "200", description = "Produto criado com sucesso")
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
-    public ResponseEntity<ProductDTO> createProduct(@RequestBody Product product, Principal principal) {
-        return ResponseEntity.ok(productService.createProduct(product, principal.getName()));
+    public ResponseEntity<ProductDTO> createProduct(@RequestBody ProductDTO productDTO, Principal principal) {
+        return ResponseEntity.ok(productService.createProduct(productDTO, principal.getName()));
     }
 
     @Operation(summary = "Atualiza um produto existente")
     @ApiResponse(responseCode = "200", description = "Produto atualizado com sucesso")
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
-    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @RequestBody Product productDetails, Principal principal) {
-        return ResponseEntity.ok(productService.updateProduct(id, productDetails, principal.getName()));
+    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @RequestBody ProductDTO productDTO, Principal principal) {
+        return ResponseEntity.ok(productService.updateProduct(id, productDTO, principal.getName()));
     }
 
     @Operation(summary = "Atualiza o estoque de um produto")
