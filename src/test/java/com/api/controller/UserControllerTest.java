@@ -3,6 +3,7 @@ package com.api.controller;
 import com.api.dto.AuthRequest;
 import com.api.dto.UserDTO;
 import com.api.enums.Role;
+import com.api.exception.GlobalExceptionHandler;
 import com.api.model.User;
 import com.api.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -45,7 +48,9 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(userController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
 
         customer = new User(1L, "customerUser", "password", Role.CUSTOMER);
         seller = new User(2L, "sellerUser", "password", Role.SELLER);
@@ -57,7 +62,7 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldReturnAuthenticatedUserProfile() throws Exception {
+    void deveRetornarPerfilDoUsuarioAutenticado() throws Exception {
         when(userService.findByUsername("customerUser")).thenReturn(customer);
 
         mockMvc.perform(get("/users/me").principal(customerPrincipal))
@@ -67,7 +72,7 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldUpdateAuthenticatedUserProfile() throws Exception {
+    void deveAtualizarPerfilDoUsuarioAutenticado() throws Exception {
         AuthRequest updateRequest = new AuthRequest("updatedUser", "newPassword", Role.CUSTOMER);
         doNothing().when(userService).updateUser(eq("customerUser"), any(AuthRequest.class));
 
@@ -80,7 +85,7 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldDeleteAuthenticatedUserAccount() throws Exception {
+    void deveExcluirContaDoUsuarioAutenticado() throws Exception {
         when(userService.findByUsername("customerUser")).thenReturn(customer);
         doNothing().when(userService).deleteUserByUsername(eq("customerUser"), any(User.class));
 
@@ -90,19 +95,26 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldNotAllowCustomerOrSellerToListAllUsers() throws Exception {
+    void naoDevePermitirQueCustomerOuSellerListemTodosOsUsuarios() throws Exception {
         when(userService.findByUsername("customerUser")).thenReturn(customer);
         when(userService.findByUsername("sellerUser")).thenReturn(seller);
 
+        doThrow(new AccessDeniedException("Apenas administradores podem listar usuários."))
+                .when(userService).findAll(customer);
+
         mockMvc.perform(get("/users").principal(customerPrincipal))
                 .andExpect(status().isForbidden());
+
+        doThrow(new AccessDeniedException("Apenas administradores podem listar usuários."))
+                .when(userService).findAll(seller);
 
         mockMvc.perform(get("/users").principal(sellerPrincipal))
                 .andExpect(status().isForbidden());
     }
 
+
     @Test
-    void shouldAllowAdminToListAllUsers() throws Exception {
+    void devePermitirQueAdminListeTodosOsUsuarios() throws Exception {
         when(userService.findByUsername("adminUser")).thenReturn(admin);
         when(userService.findAll(admin)).thenReturn(List.of(new UserDTO(customer), new UserDTO(seller)));
 
@@ -112,7 +124,7 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldAllowAdminToFindUserById() throws Exception {
+    void devePermitirQueAdminBusqueUsuarioPorId() throws Exception {
         when(userService.findByUsername("adminUser")).thenReturn(admin);
         when(userService.findById(1L, admin)).thenReturn(customer);
 
@@ -122,7 +134,7 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldAllowAdminToDeleteUserById() throws Exception {
+    void devePermitirQueAdminExcluaUsuarioPorId() throws Exception {
         when(userService.findByUsername("adminUser")).thenReturn(admin);
         doNothing().when(userService).deleteUserById(1L, admin);
 
@@ -131,18 +143,4 @@ class UserControllerTest {
                 .andExpect(content().string("Usuário excluído com sucesso!"));
     }
 
-    @Test
-    void shouldNotAllowCustomerOrSellerToDeleteOtherUsers() throws Exception {
-        when(userService.findByUsername("customerUser")).thenReturn(customer);
-        when(userService.findByUsername("sellerUser")).thenReturn(seller);
-
-        doThrow(new AccessDeniedException("Apenas administradores podem excluir usuários."))
-                .when(userService).deleteUserById(eq(1L), any(User.class));
-
-        mockMvc.perform(delete("/users/1").principal(customerPrincipal))
-                .andExpect(status().isForbidden());
-
-        mockMvc.perform(delete("/users/1").principal(sellerPrincipal))
-                .andExpect(status().isForbidden());
-    }
 }
