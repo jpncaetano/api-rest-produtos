@@ -126,7 +126,18 @@ mvn spring-boot:run
 
 1. Certifique-se que Docker e Docker Compose estão instalados.
 2. Copie o arquivo `.env.example` e renomeie para `.env`.
-3. Execute:
+3. Ajuste as variáveis de ambiente conforme o ambiente Docker:
+
+```
+DB_URL=jdbc:postgresql://db-produtos:5432/produtos_db
+DB_USERNAME=seu_usuario
+DB_PASSWORD=sua_senha
+JWT_SECRET=sua_chave_secreta
+```
+
+Importante: no ambiente Docker, utilize db-produtos como hostname do banco, pois é o nome do serviço no docker-compose.yml.
+
+4. Execute:
 
 ```bash
 docker compose up --build
