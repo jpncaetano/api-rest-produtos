@@ -102,12 +102,19 @@ O projeto também explora conceitos de modularização de ambientes utilizando P
 
 ## Como Executar o Projeto
 
+Este projeto segue boas práticas de separação de ambientes (local e docker), utilizando arquivos `.yml` e variáveis externas definidas via `.env` ou diretamente na configuração da IDE (IntelliJ).
+
 ### Rodando localmente
 
-1. Configure seu banco PostgreSQL localmente (porta 5432).
-2. Copie o arquivo `.env.example` e renomeie para `.env`.
-3. Ajuste as variáveis de ambiente:
+> Pré-requisitos:
+- PostgreSQL rodando localmente na porta `5432`
+- Java 21
+- IntelliJ (ou outra IDE compatível com Spring Boot)
+- Docker **desligado** (se estiver usando porta 5432, pode causar conflito)
 
+
+1. Copie o arquivo `.env.example` e renomeie para `.env`.
+2. Ajuste as variáveis de ambiente conforme seu banco local:
 ```
 DB_URL=jdbc:postgresql://localhost:5432/produtos_db
 DB_USERNAME=seu_usuario
@@ -115,8 +122,11 @@ DB_PASSWORD=sua_senha
 JWT_SECRET=sua_chave_secreta
 ```
 
-4. Execute a aplicação pela IDE ou terminal:
+3. Configure sua IDE para rodar com o profile `local` e carregando o `.env` (no IntelliJ):
+    - Em *Run > Edit Configurations > Active profiles*: `local`
+    - Marque `Enable EnvFile` e aponte para o caminho do seu `.env`
 
+4. Execute a aplicação:
 ```bash
 mvn clean install
 mvn spring-boot:run
@@ -124,21 +134,18 @@ mvn spring-boot:run
 
 ### Rodando via Docker
 
-1. Certifique-se que Docker e Docker Compose estão instalados.
-2. Copie o arquivo `.env.example` e renomeie para `.env`.
-3. Ajuste as variáveis de ambiente conforme o ambiente Docker:
+> Pré-requisitos:
+- Docker e Docker Compose instalados
 
+1. Copie o arquivo `.env.example` e renomeie para `.env`.
+2. Configure as variáveis com o host correto para o banco:
 ```
 DB_URL=jdbc:postgresql://db-produtos:5432/produtos_db
 DB_USERNAME=seu_usuario
 DB_PASSWORD=sua_senha
 JWT_SECRET=sua_chave_secreta
 ```
-
-Importante: no ambiente Docker, utilize db-produtos como hostname do banco, pois é o nome do serviço no docker-compose.yml.
-
-4. Execute:
-
+3. Execute o Docker:
 ```bash
 docker compose up --build
 ```
@@ -148,6 +155,21 @@ A API estará disponível em:
 ```
 http://localhost:8080/swagger-ui/index.html
 ```
+### Perfis de Configuração
+Este projeto usa o arquivo principal application.yml para ativar perfis:
+
+```bash
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+```
+
+Você pode definir o profile local ou docker e os arquivos específicos serão carregados:
+
+- `application-local.yml`: configurações para rodar com banco local (localhost:5432)
+- `application-docker.yml`: configurações para rodar com Docker Compose (db-produtos:5432)
+
+As credenciais sensíveis (usuário, senha, secret) não estão incluídas diretamente no application.yml, mas carregadas via variáveis de ambiente com suporte ao .env. Isso melhora a segurança e facilita a troca de ambientes.
 
 ## Testes Automatizados
 
@@ -188,7 +210,9 @@ api-rest-produtos
 │    │   │           ├── security
 │    │   │           └── service
 │    │   └── resources
-│    │       ├── application.properties
+│    │       ├── application.yml
+│    │       ├── application-local.yml
+│    │       ├── application-docker.yml
 │    │       └── application-test.properties
 │    └── test
 │        └── java
