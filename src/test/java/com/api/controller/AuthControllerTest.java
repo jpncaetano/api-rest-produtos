@@ -60,7 +60,7 @@ class AuthControllerTest {
 
 
     @Test
-    void shouldRegisterUserSuccessfully() throws Exception {
+    void deveRegistrarUsuarioComSucesso() throws Exception {
         AuthRequest request = new AuthRequest("user", "password", Role.CUSTOMER);
         when(userService.save(any(User.class))).thenReturn(new User());
 
@@ -72,7 +72,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void shouldNotRegisterInvalidRole() throws Exception {
+    void naoDeveRegistrarRoleInvalida() throws Exception {
         AuthRequest request = new AuthRequest("user", "password", null);
 
         mockMvc.perform(post("/auth/register")
@@ -83,7 +83,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void shouldRegisterAdminSuccessfully() throws Exception {
+    void deveRegistrarAdminComSucesso() throws Exception {
         AuthRequest request = new AuthRequest("admin", "password", Role.ADMIN);
         when(userService.save(any(User.class))).thenReturn(new User());
 
@@ -95,7 +95,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void shouldAuthenticateUserAndReturnToken() throws Exception {
+    void deveAutenticarUsuarioERetornarToken() throws Exception {
         AuthRequest request = new AuthRequest("user", "password", Role.CUSTOMER);
         Authentication authentication = mock(Authentication.class);
         User user = new User(1L, "user", "password", Role.CUSTOMER);
@@ -113,7 +113,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void shouldFailAuthenticationForInvalidUser() throws Exception {
+    void deveFalharAutenticacaoParaUsuarioInvalido() throws Exception {
         when(userRepository.findByUsername("invalid")).thenReturn(Optional.empty());
 
         mockMvc.perform(post("/auth/login")
@@ -125,14 +125,14 @@ class AuthControllerTest {
 
 
     @Test
-    void shouldLogoutSuccessfully() throws Exception {
+    void deveRealizarLogoutComSucesso() throws Exception {
         mockMvc.perform(post("/auth/logout"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Logout realizado com sucesso."));
     }
 
     @Test
-    void shouldNotRegisterDuplicateUser() throws Exception {
+    void naoDeveRegistrarUsuarioDuplicado() throws Exception {
         AuthRequest request = new AuthRequest("existingUser", "password", Role.CUSTOMER);
 
         // Simula que o usuário já existe no banco de dados
@@ -146,7 +146,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void shouldFailLoginWithIncorrectPassword() throws Exception {
+    void deveFalharLoginComSenhaIncorreta() throws Exception {
         // Simula erro de autenticação (senha incorreta)
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("Credenciais inválidas"));
