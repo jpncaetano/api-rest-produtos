@@ -63,7 +63,8 @@ class UserControllerTest {
 
     @Test
     void deveRetornarPerfilDoUsuarioAutenticado() throws Exception {
-        when(userService.findByUsername("customerUser")).thenReturn(customer);
+        when(userService.findUserDTOByUsername("customerUser"))
+                .thenReturn(new UserDTO(customer.getId(), customer.getUsername(), customer.getRole()));
 
         mockMvc.perform(get("/users/me").principal(customerPrincipal))
                 .andExpect(status().isOk())

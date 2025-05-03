@@ -44,7 +44,7 @@ public class UserService {
     }
 
     public UserDTO findUserDTOByUsername(String username) {
-        User user = findByUsername(username);  // Reutilizando seu método atual!
+        User user = findByUsername(username);
         return new UserDTO(user.getId(), user.getUsername(), user.getRole());
     }
 
